@@ -35,7 +35,7 @@ public class Test1 {
         String driver = "com.mysql.jdbc.Driver";
         Connection conn = null;
         try {
-            Class.forName(driver); //classLoader,加载对应驱动
+            Class.forName(driver); // classLoader,加载对应驱动
             Configuration config = builder.getConfiguration();
             String url = config.getString("url");
             String username = config.getString("name");
@@ -46,7 +46,7 @@ public class Test1 {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        catch(ConfigurationException cex)
+        catch (ConfigurationException cex)
         {
             cex.printStackTrace();
         }
@@ -54,19 +54,18 @@ public class Test1 {
     }
 
     public static ArrayList<String> getAbsHref(){
-        ArrayList<String> hrefArr = new   ArrayList<String>();
+        ArrayList<String> hrefArr = new ArrayList<String>();
         try {
             hrefArr.add( "https://beijing.zbj.com/wzkf/e.html");
             Document document = Jsoup.connect("https://beijing.zbj.com/wzkf/e.html").get();
-            Elements brandName = document.select("a.pagination-next"); //只有一个下一页
+            Elements brandName = document.select("a.pagination-next"); // 只有一个下一页
             String absHref;
-            for(int i = 1;i<100;i++){
-
+            for (int i = 1;i < 100;i++){
                 absHref = brandName.attr("abs:href");
                 hrefArr.add(absHref);
                 document = Jsoup.connect(absHref).get();
                 brandName = document.select("a.pagination-next");
-//                System.out.println(absHref);
+                // System.out.println(absHref);
             }
 
         } catch (IOException e) {
@@ -84,7 +83,7 @@ public class Test1 {
         try {
             if(!con.isClosed())
                 System.out.println("Succeeded connecting to the Database!");
-            //2.创建statement类对象，用来执行SQL语句！！
+            // 2.创建statement类对象，用来执行SQL语句！！
             Statement statement = con.createStatement();
             statement.executeUpdate(creatSql);
             String insertSql="insert into brandName (id,name) values (?,?)";
@@ -92,23 +91,23 @@ public class Test1 {
             Document document;
             Elements brandName;
             int i = 0;
-            for(int hrefNumber = 0;hrefNumber<100;hrefNumber++) {
+            for(int hrefNumber = 0; hrefNumber < 100; hrefNumber++) {
                 document = Jsoup.connect(absHref.get(hrefNumber)).get();
                 brandName = document.select("span.shop-info-base-name.text-overflow");
                 for (Element name : brandName) {
                     System.out.println(name.text());
-                    ps.setString(2,name.text());
+                    ps.setString(2, name.text());
                     ps.setString(1, String.valueOf(i));
                     ps.executeUpdate();
-                    i = i+1;
+                    i = i + 1;
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }catch(SQLException se){
+        }catch (SQLException se){
             // 处理 JDBC 错误
             se.printStackTrace();
-        }catch(Exception e){
+        }catch (Exception e){
             // 处理 Class.forName 错误
             e.printStackTrace();
         }

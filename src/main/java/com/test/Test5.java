@@ -41,9 +41,7 @@ public class Test5 {
             e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-        catch(ConfigurationException cex)
-        {
+        } catch (ConfigurationException cex){
             cex.printStackTrace();
         }
         return conn;
@@ -55,12 +53,12 @@ public class Test5 {
             Document document = Jsoup.connect("https://beijing.zbj.com/wzkf/e.html").get();
             Elements brandName = document.select("a.pagination-next"); //只有一个下一页
             String absHref;
-            for(int i = 1;i<100;i++){
+            for(int i = 1; i < 100; i++){
                 absHref = brandName.attr("abs:href");
                 hrefArr.add(absHref);
                 document = Jsoup.connect(absHref).get();
                 brandName = document.select("a.pagination-next");
-//                System.out.println(absHref);
+                //System.out.println(absHref);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -78,7 +76,7 @@ public class Test5 {
             Document document;
             Elements brandName;
             try {
-                for(int hrefNumber = 0;hrefNumber<pageIndices.size();hrefNumber++) {
+                for(int hrefNumber = 0; hrefNumber < pageIndices.size(); hrefNumber++) {
                     document = Jsoup.connect(pageIndices.get(hrefNumber)).get();
                     brandName = document.select("span.shop-info-base-name.text-overflow");
                     for (Element name : brandName) {
@@ -88,7 +86,7 @@ public class Test5 {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            }catch(Exception e){
+            }catch (Exception e){
                 // 处理 Class.forName 错误
                 e.printStackTrace();
             }
@@ -108,7 +106,7 @@ public class Test5 {
         public void run() {
             Connection con = getConn();
             while ((threadGroup.activeCount()!= 0) ||
-                    (threadGroup.activeCount()== 0 && content.peek() != null)){
+                      (threadGroup.activeCount()== 0 && content.peek() != null)){
                 try {
                     String insertSql = "insert into brandName (id,name) values (?,?)";
                     PreparedStatement ps = con.prepareStatement(insertSql);
@@ -142,13 +140,13 @@ public class Test5 {
 //        for(int i = 0;i<pageIndices.size();i++) {
 //                System.out.println(pageIndices.get(i));
 //        }
-        for(int i=0;i<pool.length;i++){
+        for(int i = 0; i < pool.length; i++){
             pool[i] = new MyThread(pageIndices.subList(i*25, i*25+25));
             pool[i] = new Thread(threadGroup, pool[i]);
             pool[i].start();
         }
         Thread[] db = new Thread[4];
-        for(int j=0;j<db.length;j++){
+        for(int j = 0;j < db.length; j++){
             db[j] = new dbThread(content,threadGroup);
             db[j].start();
         }
