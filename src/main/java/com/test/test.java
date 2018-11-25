@@ -53,49 +53,49 @@ public class test {
         return conn;
     }
 
-    public static ArrayList<String> getabs_href(){
-        ArrayList<String> href_arr = new   ArrayList<String>();
+    public static ArrayList<String> getAbsHref(){
+        ArrayList<String> hrefArr = new   ArrayList<String>();
         try {
-            href_arr.add( "https://beijing.zbj.com/wzkf/e.html");
+            hrefArr.add( "https://beijing.zbj.com/wzkf/e.html");
             Document document = Jsoup.connect("https://beijing.zbj.com/wzkf/e.html").get();
-            Elements brand_name = document.select("a.pagination-next"); //只有一个下一页
+            Elements brandName = document.select("a.pagination-next"); //只有一个下一页
             String absHref;
             for(int i = 1;i<100;i++){
 
-                absHref = brand_name.attr("abs:href");
-                href_arr.add(absHref);
+                absHref = brandName.attr("abs:href");
+                hrefArr.add(absHref);
                 document = Jsoup.connect(absHref).get();
-                brand_name = document.select("a.pagination-next");
+                brandName = document.select("a.pagination-next");
 //                System.out.println(absHref);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return href_arr;
+        return hrefArr;
     }
-    static String creatsql = "CREATE TABLE brand_Name " +
+    static String creatSql = "CREATE TABLE brandName " +
                              "(id INTEGER not NULL, " +
                                 " name VARCHAR(255), " +
                                 " PRIMARY KEY ( id ))DEFAULT CHARSET=utf8";
     public static void main(String[] args) {
         Connection con=getConn();
-        ArrayList<String> abs_href = getabs_href();
+        ArrayList<String> absHref = getAbsHref();
         try {
             if(!con.isClosed())
                 System.out.println("Succeeded connecting to the Database!");
             //2.创建statement类对象，用来执行SQL语句！！
             Statement statement = con.createStatement();
-            statement.executeUpdate(creatsql);
-            String insert_sql="insert into brand_Name (id,name) values (?,?)";
-            PreparedStatement ps=con.prepareStatement(insert_sql);
+            statement.executeUpdate(creatSql);
+            String insertSql="insert into brandName (id,name) values (?,?)";
+            PreparedStatement ps=con.prepareStatement(insertSql);
             Document document;
-            Elements brand_name;
+            Elements brandName;
             int i = 0;
-            for(int href_i = 0;href_i<100;href_i++) {
-                document = Jsoup.connect(abs_href.get(href_i)).get();
-                brand_name = document.select("span.shop-info-base-name.text-overflow");
-                for (Element name : brand_name) {
+            for(int hrefNumber = 0;hrefNumber<100;hrefNumber++) {
+                document = Jsoup.connect(absHref.get(hrefNumber)).get();
+                brandName = document.select("span.shop-info-base-name.text-overflow");
+                for (Element name : brandName) {
                     System.out.println(name.text());
                     ps.setString(2,name.text());
                     ps.setString(1, String.valueOf(i));

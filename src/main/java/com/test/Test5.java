@@ -1,5 +1,4 @@
 package com.test;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.FileBasedConfiguration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -49,96 +48,95 @@ public class Test5 {
         }
         return conn;
     }
-    public static List<String>  getabs_href(){
-        List<String>  href_arr = new ArrayList<String>();
+    public static List<String>  getAbsHref(){
+        List<String>  hrefArr = new ArrayList<String>();
         try {
-            href_arr.add("https://beijing.zbj.com/wzkf/e.html");
+            hrefArr.add("https://beijing.zbj.com/wzkf/e.html");
             Document document = Jsoup.connect("https://beijing.zbj.com/wzkf/e.html").get();
-            Elements brand_name = document.select("a.pagination-next"); //只有一个下一页
+            Elements brandName = document.select("a.pagination-next"); //只有一个下一页
             String absHref;
             for(int i = 1;i<100;i++){
-                absHref = brand_name.attr("abs:href");
-                href_arr.add(absHref);
+                absHref = brandName.attr("abs:href");
+                hrefArr.add(absHref);
                 document = Jsoup.connect(absHref).get();
-                brand_name = document.select("a.pagination-next");
+                brandName = document.select("a.pagination-next");
 //                System.out.println(absHref);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return href_arr;
+        return hrefArr;
     }
 
     public static class MyThread extends Thread{
         List<String>   pageIndices;
-
         public MyThread( List<String>  pageIndices){
             this.pageIndices = pageIndices;
         }
         @Override
         public void run() {
             Document document;
-            Elements brand_name;
-                try {
-                    for(int href_i = 0;href_i<pageIndices.size();href_i++) {
-                        document = Jsoup.connect(pageIndices.get(href_i)).get();
-                        brand_name = document.select("span.shop-info-base-name.text-overflow");
-                        for (Element name : brand_name) {
-                            System.out.println(getId() + " " + name.text() + "  "+ "pool中个数"+Thread.activeCount());
-                            content.offer(name.text());
-                        }
+            Elements brandName;
+            try {
+                for(int hrefNumber = 0;hrefNumber<pageIndices.size();hrefNumber++) {
+                    document = Jsoup.connect(pageIndices.get(hrefNumber)).get();
+                    brandName = document.select("span.shop-info-base-name.text-overflow");
+                    for (Element name : brandName) {
+                        System.out.println(getId() + " " + name.text() + "  "+ "pool中个数"+Thread.activeCount());
+                        content.offer(name.text());
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }catch(Exception e){
-                    // 处理 Class.forName 错误
-                    e.printStackTrace();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }catch(Exception e){
+                // 处理 Class.forName 错误
+                e.printStackTrace();
             }
         }
+    }
 
-    public static class DbThread extends Thread {
+    public static class dbThread extends Thread {
 
         public static Queue<String> content;
         public static ThreadGroup threadGroup;
-        public DbThread(Queue<String> content,ThreadGroup threadGroup) {
+        public dbThread(Queue<String> content,ThreadGroup threadGroup) {
             this.content = content;
             this.threadGroup = threadGroup;
         }
 
         @Override
         public void run() {
-                Connection con = getConn();
-                while ((threadGroup.activeCount()!= 0) ||
-                        (threadGroup.activeCount()== 0 && content.peek() != null)){
-                    try {
-                            String insert_sql = "insert into brand_Name (id,name) values (?,?)";
-                            PreparedStatement ps = con.prepareStatement(insert_sql);
-                            if (content.peek() == null) {
-                                currentThread().sleep(10);
-                            } else {
-                                PreparedStatement lock = con.prepareStatement("lock tables brand_Name write");
-                                PreparedStatement unlock = con.prepareStatement("unlock tables");
-                                lock.executeQuery();
-                                ps.setString(2, content.poll());
-                                ps.setString(1, String.valueOf(index));
-                                ps.executeUpdate();
-                                index++;
-                                unlock.executeQuery();
-                                System.out.println(getId() + "          "+ "pool中个数"+threadGroup.activeCount());
-                        }
-                    } catch (SQLException se) {
-                        // 处理 JDBC 错误
-                        se.printStackTrace();
-                    } catch (Exception e) {
-                        // 处理 Class.forName 错误
-                        e.printStackTrace();
+            Connection con = getConn();
+            while ((threadGroup.activeCount()!= 0) ||
+                    (threadGroup.activeCount()== 0 && content.peek() != null)){
+                try {
+                    String insertSql = "insert into brandName (id,name) values (?,?)";
+                    PreparedStatement ps = con.prepareStatement(insertSql);
+                    if (content.peek() == null) {
+                        currentThread().sleep(10);
+                    } else {
+                        PreparedStatement lock = con.prepareStatement("lock tables brandName write");
+                        PreparedStatement unlock = con.prepareStatement("unlock tables");
+                        lock.executeQuery();
+                        ps.setString(2, content.poll());
+                        ps.setString(1, String.valueOf(index));
+                        ps.executeUpdate();
+                        index++;
+                        unlock.executeQuery();
+                        System.out.println(getId() + "          "+ "pool中个数"+threadGroup.activeCount());
                     }
+                } catch (SQLException se) {
+                    // 处理 JDBC 错误
+                    se.printStackTrace();
+                } catch (Exception e) {
+                    // 处理 Class.forName 错误
+                    e.printStackTrace();
                 }
+            }
         }
     }
     public static void main(String[] args) {
-        List<String>  pageIndices = getabs_href();
+        List<String>  pageIndices = getAbsHref();
         Thread[] pool = new Thread[4];
         ThreadGroup threadGroup = new ThreadGroup("test-group");
 //        for(int i = 0;i<pageIndices.size();i++) {
@@ -151,7 +149,7 @@ public class Test5 {
         }
         Thread[] db = new Thread[4];
         for(int j=0;j<db.length;j++){
-            db[j] = new DbThread(content,threadGroup);
+            db[j] = new dbThread(content,threadGroup);
             db[j].start();
         }
     }
