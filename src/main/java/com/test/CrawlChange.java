@@ -4,40 +4,38 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.LinkedList;
 public class CrawlChange {
-    public static ArrayBlockingQueue<String> getAbsHref(){
-        ArrayBlockingQueue<String> absHrefArr = new ArrayBlockingQueue(300);
-        try {
-            absHrefArr.offer("https://beijing.zbj.com/wzkf/e.html");
-            Document document = Jsoup.connect("https://beijing.zbj.com/wzkf/e.html").get();
-            Elements brandName = document.select("a.pagination-next"); //只有一个下一页
-            String absHref;
-            for(int i = 1; i < 100; i++){
-                absHref = brandName.attr("abs:href");
-                absHrefArr.offer(absHref);
-                document = Jsoup.connect(absHref).get();
-                brandName = document.select("a.pagination-next");
-                //System.out.println(absHref);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static LinkedList<String> getAbsHref(){
+        LinkedList<String> absHrefArr = new LinkedList();
+        String basicPage = "https://beijing.zbj.com/wzkf/";
+        String url;
+        for (int i = 0; i < 100; i++){
+                if (i == 0) {
+                    url = basicPage + "e.html";
+                }
+                else {
+                    url = basicPage + "ek" + String.valueOf(i*60) + ".html";
+                }
+                absHrefArr.offer(url);
         }
         return absHrefArr;
     }
     public static class MyThread extends Thread {
-        ArrayBlockingQueue<String>  subAbsHrefQueue;
-        ArrayBlockingQueue<String>  absHref;
-        public MyThread(ArrayBlockingQueue  subAbsHrefQueue, ArrayBlockingQueue  absHref) {
+        LinkedList<String>  subAbsHrefQueue;
+        LinkedList<String>  absHref;
+        ThreadGroup threadGroup;
+        public MyThread(LinkedList  subAbsHrefQueue, LinkedList  absHref,ThreadGroup threadGroup) {
             this.subAbsHrefQueue = subAbsHrefQueue;
             this.absHref = absHref;
+            this.threadGroup = threadGroup;
         }
         @Override
         public void run() {
             Document document;
             Elements brandName;
-            try{
-                while(absHref.peek() != null){
+            try {
+                while (absHref.peek() != null){
                     if (subAbsHrefQueue.peek() == null)
                     {
                         subAbsHrefQueue.offer(absHref.poll());
@@ -47,7 +45,7 @@ public class CrawlChange {
                         document = Jsoup.connect(subAbsHrefQueue.poll()).get();
                         brandName = document.select("span.shop-info-base-name.text-overflow");
                         for (Element name : brandName) {
-                            System.out.println(getId() + " " + name.text() + "  "+ "pool中个数"+Thread.activeCount());
+                            System.out.println(getId() + " " + name.text() + "  "+ "pool中个数"+threadGroup.activeCount());
                         }
                     }
                 }
@@ -56,18 +54,13 @@ public class CrawlChange {
             }
         }
     }
-
     public static void main(String args[]) {
-        ArrayBlockingQueue<String> absHref = getAbsHref();
-        Thread[] pool = new Thread[3];
-        ArrayBlockingQueue<String> queue1 = new ArrayBlockingQueue<String>(1);
-        ArrayBlockingQueue<String> queue2 = new ArrayBlockingQueue<String>(1);
-        ArrayBlockingQueue<String> queue3 = new ArrayBlockingQueue<String>(1);
+        Thread[] pool = new Thread[20];
+        LinkedList<String> absHref = getAbsHref();
+        LinkedList<String> queue = new LinkedList<String>();
         ThreadGroup threadGroup = new ThreadGroup("test-group");
-        pool[0] = new MyThread(queue1,absHref);
-        pool[1] = new MyThread(queue2,absHref);
-        pool[2] = new MyThread(queue3,absHref);
-        for(int i = 0; i < pool.length; i++){
+        for (int i = 0; i < pool.length; i++){
+            pool[i] = new MyThread(queue,absHref,threadGroup);
             pool[i] = new Thread(threadGroup, pool[i]);
             pool[i].start();
         }
