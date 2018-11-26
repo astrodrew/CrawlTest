@@ -5,7 +5,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
-
 public class CrawlChange {
     public static ArrayBlockingQueue<String> getAbsHref(){
         ArrayBlockingQueue<String> absHrefArr = new ArrayBlockingQueue(300);
@@ -26,7 +25,6 @@ public class CrawlChange {
         }
         return absHrefArr;
     }
-
     public static class MyThread extends Thread {
         ArrayBlockingQueue<String>  subAbsHrefQueue;
         ArrayBlockingQueue<String>  absHref;
@@ -57,21 +55,21 @@ public class CrawlChange {
                 e.printStackTrace();
             }
         }
+    }
 
-        public static void main(String args[]) {
-            ArrayBlockingQueue<String> absHref = getAbsHref();
-            Thread[] pool = new Thread[3];
-            ArrayBlockingQueue<String> queue1 = new ArrayBlockingQueue<String>(1);
-            ArrayBlockingQueue<String> queue2 = new ArrayBlockingQueue<String>(1);
-            ArrayBlockingQueue<String> queue3 = new ArrayBlockingQueue<String>(1);
-            ThreadGroup threadGroup = new ThreadGroup("test-group");
-            pool[0] = new MyThread(queue1,absHref);
-            pool[1] = new MyThread(queue2,absHref);
-            pool[2] = new MyThread(queue3,absHref);
-            for(int i = 0; i < pool.length; i++){
-                pool[i] = new Thread(threadGroup, pool[i]);
-                pool[i].start();
-            }
+    public static void main(String args[]) {
+        ArrayBlockingQueue<String> absHref = getAbsHref();
+        Thread[] pool = new Thread[3];
+        ArrayBlockingQueue<String> queue1 = new ArrayBlockingQueue<String>(1);
+        ArrayBlockingQueue<String> queue2 = new ArrayBlockingQueue<String>(1);
+        ArrayBlockingQueue<String> queue3 = new ArrayBlockingQueue<String>(1);
+        ThreadGroup threadGroup = new ThreadGroup("test-group");
+        pool[0] = new MyThread(queue1,absHref);
+        pool[1] = new MyThread(queue2,absHref);
+        pool[2] = new MyThread(queue3,absHref);
+        for(int i = 0; i < pool.length; i++){
+            pool[i] = new Thread(threadGroup, pool[i]);
+            pool[i].start();
         }
     }
 }
